@@ -1,125 +1,120 @@
-//Controlador principal
-//Funciones
+// =====================
+// Controlador principal
+// =====================
 
-//CRUD (Create, Read, Update, Delete)
-//Función Agregar Empleado (C - Crear)
-function crearEmpleado(){
-
-	document.getElementById('divAgregarEmpleado').style.display='block';
-	//alert("Entró a crear Empleado");
+// Mostrar u ocultar el formulario
+function crearEmpleado() {
+   alert("Entró a agregar empleado");
+  const div = document.getElementById('divAgregarEmpleado');
+  div.style.display = (div.style.display === 'none' || div.style.display === '') ? 'block' : 'none';
 }
 
-function agregarEmpleado(){
-	alert ("entró a agregar empleado");
+// Función para agregar un empleado
+function agregarEmpleado() {
+  alert(" Agrego un empleado");
 
-	// Cargar empleados guardados al iniciar
-    document.addEventListener("DOMContentLoaded", mostrarEmpleados);
+  // Crear objeto empleado
+  const empleado = new Empleado(
+    document.getElementById('cc').value,
+    document.getElementById('nombresyApellidos').value,
+    document.getElementById('direccion').value,
+    document.getElementById('email').value,
+    document.getElementById('telefono').value,
+    Number(document.getElementById('sueldoBase').value),
+    document.getElementById('tipoEmpleado').value,
+    document.getElementById('tipoBonificacion').value
+  );
 
-    // Manejar envío del formulario
-    document.getElementById('formEmpleado').addEventListener('submit', function(e) {
-      e.preventDefault();
+  // Calcular bonificación
+  let adicion = 0;
+  switch (empleado.tipoBonificacion.toUpperCase()) {
+    case 'A': adicion = 200000; break;
+    case 'B': adicion = 150000; break;
+    case 'C': adicion = 100000; break;
+    case 'D': adicion = 50000; break;
+  }
+  empleado.sueldoTotal = empleado.sueldoBase + adicion;
 
-      const empleado = new Empleado(
-        document.getElementById('cc').value,
-        document.getElementById('nombresyApellidos').value,
-        document.getElementById('direccion').value,
-        document.getElementById('email').value,
-        document.getElementById('telefono').value,
-        document.getElementById('sueldoBase').value,
-        document.getElementById('tipoEmpleado').value,
-        document.getElementById('tipoBonificacion').value
-      );
+  // Guardar en localStorage
+  let empleados = JSON.parse(localStorage.getItem('empleados')) || [];
+  empleados.push(empleado);
+  localStorage.setItem('empleados', JSON.stringify(empleados));
 
-      // Obtener lista existente o crear nueva
-      let empleados = JSON.parse(localStorage.getItem('empleados')) || [];
+  // Actualizar tabla
+  mostrarEmpleados();
 
-      // Agregar nuevo empleado
-      empleados.push(empleado);
+  // Limpiar formulario
+  document.getElementById('formEmpleado').reset();
+}
 
-      // Guardar nuevamente
-      localStorage.setItem('empleados', JSON.stringify(empleados));
+// Mostrar empleados en tabla
+function mostrarEmpleados() {
+  const tbody = document.querySelector('#tablaEmpleados tbody');
+  tbody.innerHTML = '';
 
-      // Actualizar tabla
-      mostrarEmpleados();
+  // Recuperar los datos del localStorage
+  const empleadosGuardados = JSON.parse(localStorage.getItem('empleados')) || [];
 
-      // Limpiar formulario
-      e.target.reset();
-    });
+  // Convertirlos nuevamente a instancias de la clase Empleado
+  const empleados = empleadosGuardados.map(emp => new Empleado(
+    emp.cc,
+    emp.nombresyApellidos,
+    emp.direccion,
+    emp.email,
+    emp.telefono,
+    emp.sueldoBase,
+    emp.tipoEmpleado,
+    emp.tipoBonificacion
+  ));
 
-    // Mostrar empleados en tabla
-    function mostrarEmpleados() {
-      const tbody = document.querySelector('#tablaEmpleados tbody');
-      tbody.innerHTML = '';
+  // Mostrar cada empleado en la tabla
+  empleados.forEach((emp, index) => {
+    const fila = `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${emp.cc}</td>
+        <td>${emp.nombresyApellidos}</td>
+        <td>${emp.direccion}</td>
+        <td>${emp.email}</td>
+        <td>${emp.telefono}</td>
+        <td>$ ${emp.sueldoBase.toLocaleString()}</td>
+        <td>${emp.tipoEmpleado}</td>
+        <td>${emp.tipoBonificacion}</td>
+        <td>$ ${emp.sueldoTotal.toLocaleString()}</td>
+      </tr>`;
+    tbody.insertAdjacentHTML('beforeend', fila);
+  });
 
-      const empleados = JSON.parse(localStorage.getItem('empleados')) || [];
-
-      empleados.forEach((emp, index) => {
-        // Validar datos
-        emp.sueldoBase = Number(emp.sueldoBase) || 0;
-
-        // Calcular sueldoTotal si no existe (compatibilidad con datos antiguos)
-        if (emp.sueldoTotal === undefined || emp.sueldoTotal === null) {
-          let adicion = 0;
-          switch ((emp.tipoBonificacion || '').toString().toUpperCase()) {
-            case 'A': adicion = 200000; break;
-            case 'B': adicion = 150000; break;
-            case 'C': adicion = 100000; break;
-            case 'D': adicion = 50000; break;
-            default: adicion = 0;
-          }
-          emp.sueldoTotal = emp.sueldoBase + adicion;
-        }
-
-        const fila = `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${emp.cc}</td>
-            <td>${emp.nombresyApellidos}</td>
-            <td>${emp.direccion}</td>
-            <td>${emp.email}</td>
-            <td>${emp.telefono}</td>
-            <td>$ ${emp.sueldoBase.toLocaleString()}</td>
-            <td>${emp.tipoEmpleado}</td>
-            <td>${emp.tipoBonificacion}</td>
-            <td>$ ${emp.sueldoTotal.toLocaleString()}</td>
-          </tr>`;
-        tbody.innerHTML += fila;
-      });
-
-      // 🔹 Usamos la función hallarTotalNomina() para calcular la suma total
-      const totalNomina = hallarTotalNomina();
-
-      // Fila de total de nómina (solo una)
-      if (empleados.length > 0) {
-        const filaTotal = `
-          <tr class="table-secondary">
-            <td colspan="9" class="text-end"><strong>Total Nómina:</strong></td>
-            <td><strong>$ ${totalNomina.toLocaleString()}</strong></td>
-          </tr>`;
-        tbody.insertAdjacentHTML('beforeend', filaTotal);
+  // Mostrar total de nómina
+  if (empleados.length > 0) {
+    const totalNomina = hallarTotalNomina();
+    const filaTotal = `
+      <tr class="table-secondary">
+        <td colspan="9" class="text-end"><strong>Total Nómina:</strong></td>
+        <td><strong>$ ${totalNomina.toLocaleString()}</strong></td>
+      </tr>`;
+    tbody.insertAdjacentHTML('beforeend', filaTotal);
   }
 }
 
 
-  function hallarTotalNomina() {
+// Calcular el total de la nómina
+function hallarTotalNomina() {
   const empleados = JSON.parse(localStorage.getItem('empleados')) || [];
-  let total = 0;
-
-  empleados.forEach(emp => {
+  return empleados.reduce((total, emp) => {
     let adicion = 0;
-    switch ((emp.tipoBonificacion || '').toString().toUpperCase()) {
+    switch ((emp.tipoBonificacion || '').toUpperCase()) {
       case 'A': adicion = 200000; break;
       case 'B': adicion = 150000; break;
       case 'C': adicion = 100000; break;
       case 'D': adicion = 50000; break;
-      default: adicion = 0;
     }
-    emp.sueldoBase = Number(emp.sueldoBase) || 0;
-    total += emp.sueldoBase + adicion;
-  });
-
-  return total;
+    return total + Number(emp.sueldoBase) + adicion;
+  }, 0);
 }
+
+// Mostrar los empleados al cargar la página
+document.addEventListener('DOMContentLoaded', mostrarEmpleados);
 
 
 

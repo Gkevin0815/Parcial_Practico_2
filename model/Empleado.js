@@ -1,47 +1,31 @@
-class Empleado{
-	//atributos
+class Empleado {
+  // Constructor
+  constructor(cc, nombresyApellidos, direccion, email, telefono, sueldoBase, tipoEmpleado, tipoBonificacion) {
+    this.cc = cc;
+    this.nombresyApellidos = nombresyApellidos;
+    this.direccion = direccion;
+    this.email = email;
+    this.telefono = telefono;
+    this.sueldoBase = Number(sueldoBase);
+    this.tipoEmpleado = tipoEmpleado;
+    this.tipoBonificacion = tipoBonificacion;
 
-	//Constructor
+    // Calcular sueldo total al crear el objeto
+    this.sueldoTotal = this.calcularSueldoTotal();
+  }
 
-		//contructor vacío - En la nueva versión no es necesario...
-	//constructor(){}
-
-	constructor(cc,nombresyApellidos,direccion,email,telefono,sueldoBase,
-		tipoEmpleado,tipoBonificacion){
-		this.cc = cc;
-		this.nombresyApellidos = nombresyApellidos;
-		this.direccion=direccion;
-		this.email=email;
-		this.telefono=telefono;
-		this.sueldoBase=sueldoBase;
-		this.tipoEmpleado=tipoEmpleado;
-		this.tipoBonificacion=tipoBonificacion;
-
-		//Sueldo total
-
-		this.sueldoTotal = this.calcularSueldoTotal();
-	}
-
-	//Métodos
-
-	calcularSueldoTotal() {
+  // Método para calcular el sueldo total
+  calcularSueldoTotal() {
     let adicion = 0;
-    switch (this.tipoBonificacion) {
-      case "A":
-        adicion = 200000;
-        break;
-      case "B":
-        adicion = 150000;
-        break;
-      case "C":
-        adicion = 100000;
-        break;
-      case "D":
-        adicion = 50000;
-        break;
-      default:
-        adicion = 0;
+    switch (this.tipoBonificacion.toUpperCase()) {
+      case "A": adicion = 200000; break;
+      case "B": adicion = 150000; break;
+      case "C": adicion = 100000; break;
+      case "D": adicion = 50000; break;
+      default: adicion = 0;
     }
+    return this.sueldoBase + adicion; // ✅ Esta línea es esencial
+  }
 }
 
 
