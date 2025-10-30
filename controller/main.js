@@ -4,47 +4,52 @@
 
 // Mostrar u ocultar el formulario
 function crearEmpleado() {
-   alert("Entró a agregar empleado");
+  alert(" Entro al formulario");
+
   const div = document.getElementById('divAgregarEmpleado');
   div.style.display = (div.style.display === 'none' || div.style.display === '') ? 'block' : 'none';
 }
 
 // Función para agregar un empleado
-function agregarEmpleado() {
+function agregarEmpleado(event) {
+  // ✅ Mostrar alerta al hacer clic (antes de cualquier otra acción)
   alert(" Agrego un empleado");
 
-  // Crear objeto empleado
-  const empleado = new Empleado(
-    document.getElementById('cc').value,
-    document.getElementById('nombresyApellidos').value,
-    document.getElementById('direccion').value,
-    document.getElementById('email').value,
-    document.getElementById('telefono').value,
-    Number(document.getElementById('sueldoBase').value),
-    document.getElementById('tipoEmpleado').value,
-    document.getElementById('tipoBonificacion').value
-  );
+  // Evitar comportamiento por defecto del formulario
+  if (event) event.preventDefault();
 
-  // Calcular bonificación
-  let adicion = 0;
-  switch (empleado.tipoBonificacion.toUpperCase()) {
-    case 'A': adicion = 200000; break;
-    case 'B': adicion = 150000; break;
-    case 'C': adicion = 100000; break;
-    case 'D': adicion = 50000; break;
+  // Obtener datos del formulario
+  const cc = document.getElementById('cc').value.trim();
+  const nombresyApellidos = document.getElementById('nombresyApellidos').value.trim();
+  const direccion = document.getElementById('direccion').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+  const sueldoBase = Number(document.getElementById('sueldoBase').value);
+  const tipoEmpleado = document.getElementById('tipoEmpleado').value;
+  const tipoBonificacion = document.getElementById('tipoBonificacion').value;
+
+  // Validar que no falten campos
+  if (!cc || !nombresyApellidos || !direccion || !email || !telefono || !sueldoBase) {
+    alert("⚠️ Por favor, completa todos los campos antes de agregar el empleado.");
+    return;
   }
-  empleado.sueldoTotal = empleado.sueldoBase + adicion;
+
+  // Crear nuevo empleado usando la clase
+  const empleado = new Empleado(cc, nombresyApellidos, direccion, email, telefono, sueldoBase, tipoEmpleado, tipoBonificacion);
 
   // Guardar en localStorage
   let empleados = JSON.parse(localStorage.getItem('empleados')) || [];
   empleados.push(empleado);
   localStorage.setItem('empleados', JSON.stringify(empleados));
 
-  // Actualizar tabla
+  // Mostrar en la tabla
   mostrarEmpleados();
 
-  // Limpiar formulario
+  // Limpiar el formulario
   document.getElementById('formEmpleado').reset();
+
+  // Ocultar el formulario (opcional)
+  document.getElementById('divAgregarEmpleado').style.display = 'none';
 }
 
 // Mostrar empleados en tabla
@@ -52,10 +57,9 @@ function mostrarEmpleados() {
   const tbody = document.querySelector('#tablaEmpleados tbody');
   tbody.innerHTML = '';
 
-  // Recuperar los datos del localStorage
   const empleadosGuardados = JSON.parse(localStorage.getItem('empleados')) || [];
 
-  // Convertirlos nuevamente a instancias de la clase Empleado
+  // Convertir a instancias de Empleado
   const empleados = empleadosGuardados.map(emp => new Empleado(
     emp.cc,
     emp.nombresyApellidos,
@@ -67,7 +71,6 @@ function mostrarEmpleados() {
     emp.tipoBonificacion
   ));
 
-  // Mostrar cada empleado en la tabla
   empleados.forEach((emp, index) => {
     const fila = `
       <tr>
@@ -85,7 +88,7 @@ function mostrarEmpleados() {
     tbody.insertAdjacentHTML('beforeend', fila);
   });
 
-  // Mostrar total de nómina
+  // Total de nómina
   if (empleados.length > 0) {
     const totalNomina = hallarTotalNomina();
     const filaTotal = `
@@ -96,7 +99,6 @@ function mostrarEmpleados() {
     tbody.insertAdjacentHTML('beforeend', filaTotal);
   }
 }
-
 
 // Calcular el total de la nómina
 function hallarTotalNomina() {
@@ -115,7 +117,3 @@ function hallarTotalNomina() {
 
 // Mostrar los empleados al cargar la página
 document.addEventListener('DOMContentLoaded', mostrarEmpleados);
-
-
-
-
